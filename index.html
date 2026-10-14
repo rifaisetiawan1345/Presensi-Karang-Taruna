@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presensi Karang Taruna</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 450px; margin: auto; background-color: #f4f6f9; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    input, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
+    button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .btn-danger { background-color: #dc3545; }
+    .btn-danger:hover { background-color: #a71d2a; }
+    .hidden { display: none; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Presensi Karang Taruna</h2>
+
+    <!-- FORM LOGIN -->
+    <div id="loginSection">
+      <h3>Login Anggota</h3>
+      <input type="text" id="userId" placeholder="ID Anggota (misal: KT001)">
+      <input type="password" id="userPass" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <!-- PANEL UTAMA SETELAH LOGIN -->
+    <div id="appSection" class="hidden">
+      <h3 id="welcomeMsg"></h3>
+      <p>Jabatan: <b id="userRole"></b></p>
+
+      <div>
+        <button onclick="kirimPresensi()">Klik Untuk Presensi Sekarang</button>
+      </div>
+
+      <!-- PANEL KHUSUS ADMIN -->
+      <div id="adminPanel" class="hidden" style="margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 10px;">
+        <h3>Panel Admin - Log Presensi</h3>
+        <button onclick="muatLogPresensi()" style="background-color: #28a745;">Refresh Data Log</button>
+        <ul id="logList"></ul>
+      </div>
+
+      <br>
+      <button onclick="logout()" class="btn-danger">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    // TEMPELKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const API_URL = "PASTE_URL_WEB_APP_APPS_SCRIPT_DI_SINI";
+
+    let currentUser = null;
+
+    async function login() {
+      const id = document.getElementById("userId").value.trim();
+      const password = document.getElementById("userPass").value.trim();
+
+      if (!id || !password) {
+        alert("Silakan isi ID dan Password!");
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "login", id: id, password: password })
+        });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          currentUser = { id: id, nama: result.nama, jabatan: result.jabatan };
+          
+          document.getElementById("loginSection").classList.add("hidden");
+          document.getElementById("appSection").classList.remove("hidden");
+          document.getElementById("welcomeMsg").innerText = "Selamat Datang, " + result.nama;
+          document.getElementById("userRole").innerText = result.jabatan;
+
+          if (result.jabatan === "Admin") {
+            document.getElementById("adminPanel").classList.remove("hidden");
+            muatLogPresensi();
+          }
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        alert("Gagal terhubung ke server: " + err.message);
+      }
+    }
+
+    async function kirimPresensi() {
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "presensi", id: currentUser.id, nama: currentUser.nama })
+        });
+        const result = await response.json();
+        alert(result.message);
+      } catch (err) {
+        alert("Gagal mencatat presensi!");
+      }
+    }
+
+    async function muatLogPresensi() {
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "getLogs", id: currentUser.id })
+        });
+        const result = await response.json();
+        const logList = document.getElementById("logList");
+        logList.innerHTML = "";
+
+        if (result.status === "success") {
+          result.data.forEach(item => {
+            const li = document.createElement("li");
+            const wkt = new Date(item.timestamp).toLocaleString("id-ID");
+            li.innerText = `${item.nama} (${item.id}) - ${wkt}`;
+            logList.appendChild(li);
+          });
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        alert("Gagal memuat log presensi!");
+      }
+    }
+
+    function logout() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
