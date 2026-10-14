@@ -3,59 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Presensi Karang Taruna</title>
+  <title>Sistem Presensi Karang Taruna</title>
+  
+  <!-- MENGGUNAKAN BOOTSTRAP CSS AGAR TAMPILAN MODERN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/css/bootstrap.min.css" rel="stylesheet">
+  
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 450px; margin: auto; background-color: #f4f6f9; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
-    button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-    .btn-danger { background-color: #dc3545; }
-    .btn-danger:hover { background-color: #a71d2a; }
-    .hidden { display: none; }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 5px; }
+    /* Tambahan CSS custom sedikit untuk penyesuaian */
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .main-card {
+      max-width: 500px;
+      margin: 30px auto;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .card-header {
+      background-color: #0d6efd;
+      color: white;
+      text-align: center;
+      border-radius: 15px 15px 0 0 !important;
+      padding: 20px;
+    }
+    .badge-admin {
+      background-color: #198754;
+      font-size: 0.8rem;
+    }
+    .log-container {
+      max-height: 250px;
+      overflow-y: auto;
+      background-color: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Presensi Karang Taruna</h2>
-
-    <!-- FORM LOGIN -->
-    <div id="loginSection">
-      <h3>Login Anggota</h3>
-      <input type="text" id="userId" placeholder="ID Anggota (misal: KT001)">
-      <input type="password" id="userPass" placeholder="Password">
-      <button onclick="login()">Login</button>
-    </div>
-
-    <!-- PANEL UTAMA SETELAH LOGIN -->
-    <div id="appSection" class="hidden">
-      <h3 id="welcomeMsg"></h3>
-      <p>Jabatan: <b id="userRole"></b></p>
-
-      <div>
-        <button onclick="kirimPresensi()">Klik Untuk Presensi Sekarang</button>
+  <div class="container p-3">
+    <div class="card main-card">
+      <div class="card-header">
+        <h2 class="mb-0">Karang Taruna</h2>
+        <p class="mb-0 opacity-75">Sistem Presensi Digital</p>
       </div>
+      <div class="card-body p-4">
 
-      <!-- PANEL KHUSUS ADMIN -->
-      <div id="adminPanel" class="hidden" style="margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 10px;">
-        <h3>Panel Admin - Log Presensi</h3>
-        <button onclick="muatLogPresensi()" style="background-color: #28a745;">Refresh Data Log</button>
-        <ul id="logList"></ul>
+        <!-- ======================= SECTION 1: LOGIN ======================= -->
+        <div id="loginSection" class="text-center">
+          <img src="https://img.icons8.com/bubbles/100/null/fingerprint-accepted.png" class="mb-3" alt="Login Icon">
+          <h4 class="mb-3 text-secondary">Silakan Login</h4>
+          
+          <div class="mb-3 text-start">
+            <label for="userId" class="form-label fw-bold text-muted">ID Anggota</label>
+            <input type="text" id="userId" class="form-control form-control-lg" placeholder="Contoh: KT001" required>
+          </div>
+          
+          <div class="mb-4 text-start">
+            <label for="userPass" class="form-label fw-bold text-muted">Password</label>
+            <input type="password" id="userPass" class="form-control form-control-lg" placeholder="********" required>
+          </div>
+          
+          <div class="d-grid">
+            <button id="btnLogin" class="btn btn-primary btn-lg" onclick="login()">
+              <span id="loginText">Masuk</span>
+              <span id="loginLoading" class="spinner-border spinner-border-sm hidden" role="status"></span>
+            </button>
+          </div>
+        </div>
+        <!-- ===================== AKHIR SECTION 1: LOGIN ==================== -->
+
+
+        <!-- ======================= SECTION 2: UTAMA ======================== -->
+        <div id="appSection" class="hidden">
+          <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+            <img src="https://img.icons8.com/bubbles/60/null/user.png" class="me-3" alt="User Icon">
+            <div>
+              <h4 id="welcomeMsg" class="mb-1 text-primary">Selamat Datang, -</h4>
+              <p class="mb-0 text-muted">
+                Jabatan: <span id="userRoleBadge" class="badge bg-secondary badge-admin">Anggota</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Bagian Presensi (Untuk Semua) -->
+          <div class="text-center p-3 mb-4 bg-light rounded-3 shadow-sm">
+            <img src="https://img.icons8.com/color/60/null/checked--v1.png" class="mb-2" alt="Check Icon">
+            <h5 class="mb-3">Absensi Kehadiran</h5>
+            <div class="d-grid">
+              <button id="btnPresensi" class="btn btn-success btn-lg shadow" onclick="kirimPresensi()">
+                <span id="presensiText">Klik Untuk Hadir</span>
+                <span id="presensiLoading" class="spinner-border spinner-border-sm hidden" role="status"></span>
+              </button>
+            </div>
+            <p class="text-muted mt-2 small">*Tekan saat sudah di lokasi kegiatan</p>
+          </div>
+
+          <!-- PANEL KHUSUS ADMIN -->
+          <div id="adminPanel" class="hidden mt-4 pt-3 border-top border-2 border-dashed">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="text-success fw-bold">Histori Presensi (Admin)</h5>
+              <button class="btn btn-sm btn-outline-success" onclick="muatLogPresensi()">
+                <img src="https://img.icons8.com/ios-glyphs/16/null/refresh.png" class="me-1">
+                Refresh
+              </button>
+            </div>
+            
+            <!-- Wadah Daftar Log -->
+            <div id="logContainer" class="log-container">
+              <p id="logEmptyState" class="text-center text-muted small py-3">Belum ada data...</p>
+              <ul id="logList" class="list-group list-group-flush small">
+                <!-- Data akan masuk di sini -->
+              </ul>
+            </div>
+          </div>
+          <!-- AKHIR PANEL KHUSUS ADMIN -->
+
+          <div class="d-grid mt-4">
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm">
+              Keluar Sistem
+            </button>
+          </div>
+        </div>
+        <!-- ===================== AKHIR SECTION 2: UTAMA ==================== -->
+
       </div>
-
-      <br>
-      <button onclick="logout()" class="btn-danger">Logout</button>
     </div>
+    <div class="text-center mt-3 text-muted small">© Karang Taruna Digital</div>
   </div>
 
+  <!-- BOOTSTRAP JS UNTUK FITUR INTERAKTIF -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/js/bootstrap.bundle.min.js"></script>
+
   <script>
+    // =========================================================
     // TEMPELKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    // =========================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbx4zjZKGA3voSrLr2x8sS6rA8MCGyZomZJnG0beTyuDxoiOvsZGd4qM8TiyUYqOIZqzLQ/exec";
+    // =========================================================
+    // =========================================================
 
     let currentUser = null;
+
+    // Helper untuk menampilkan/menyembunyikan loading
+    function toggleLoading(btnId, show) {
+      const btn = document.getElementById(btnId);
+      const text = document.getElementById(btnId.replace('btn', '').toLowerCase() + 'Text');
+      const loading = document.getElementById(btnId.replace('btn', '').toLowerCase() + 'Loading');
+      
+      if (show) {
+        btn.disabled = true;
+        text.classList.add('hidden');
+        loading.classList.remove('hidden');
+      } else {
+        btn.disabled = false;
+        text.classList.remove('hidden');
+        loading.classList.add('hidden');
+      }
+    }
 
     async function login() {
       const id = document.getElementById("userId").value.trim();
@@ -65,6 +174,8 @@
         alert("Silakan isi ID dan Password!");
         return;
       }
+
+      toggleLoading('btnLogin', true); // Tampilkan Loading
 
       try {
         const response = await fetch(API_URL, {
@@ -79,55 +190,98 @@
           document.getElementById("loginSection").classList.add("hidden");
           document.getElementById("appSection").classList.remove("hidden");
           document.getElementById("welcomeMsg").innerText = "Selamat Datang, " + result.nama;
-          document.getElementById("userRole").innerText = result.jabatan;
+          document.getElementById("userRoleBadge").innerText = result.jabatan;
 
           if (result.jabatan === "Admin") {
             document.getElementById("adminPanel").classList.remove("hidden");
+            document.getElementById("userRoleBadge").classList.remove('bg-secondary');
+            document.getElementById("userRoleBadge").classList.add('bg-success');
             muatLogPresensi();
           }
         } else {
           alert(result.message);
         }
       } catch (err) {
-        alert("Gagal terhubung ke server: " + err.message);
+        alert("Gagal terhubung ke server. Pastikan URL API benar.");
+      } finally {
+        toggleLoading('btnLogin', false); // Sembunyikan Loading
       }
     }
 
     async function kirimPresensi() {
+      toggleLoading('btnPresensi', true); // Tampilkan Loading
+
       try {
         const response = await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify({ action: "presensi", id: currentUser.id, nama: currentUser.nama })
         });
         const result = await response.json();
-        alert(result.message);
+        
+        if (result.status === "success") {
+          // Ganti teks tombol sementara
+          document.getElementById('presensiText').innerText = 'Hadir Tercatat! ✓';
+          document.getElementById('btnPresensi').classList.replace('btn-success', 'btn-secondary');
+          setTimeout(() => {
+            document.getElementById('presensiText').innerText = 'Klik Untuk Hadir';
+            document.getElementById('btnPresensi').classList.replace('btn-secondary', 'btn-success');
+          }, 3000);
+          
+          if (currentUser.jabatan === "Admin") muatLogPresensi(); // Refresh log admin
+        } else {
+          alert("Gagal mencatat presensi.");
+        }
       } catch (err) {
-        alert("Gagal mencatat presensi!");
+        alert("Terjadi kesalahan jaringan.");
+      } finally {
+        toggleLoading('btnPresensi', false); // Sembunyikan Loading
       }
     }
 
     async function muatLogPresensi() {
+      const emptyState = document.getElementById("logEmptyState");
+      const logList = document.getElementById("logList");
+      
+      emptyState.innerText = "Memuat data...";
+      logList.innerHTML = "";
+
       try {
         const response = await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify({ action: "getLogs", id: currentUser.id })
         });
         const result = await response.json();
-        const logList = document.getElementById("logList");
-        logList.innerHTML = "";
 
         if (result.status === "success") {
-          result.data.forEach(item => {
-            const li = document.createElement("li");
-            const wkt = new Date(item.timestamp).toLocaleString("id-ID");
-            li.innerText = `${item.nama} (${item.id}) - ${wkt}`;
-            logList.appendChild(li);
-          });
+          if (result.data.length === 0) {
+            emptyState.innerText = "Belum ada log presensi.";
+            emptyState.classList.remove("hidden");
+          } else {
+            emptyState.classList.add("hidden");
+            result.data.reverse().forEach(item => { // Data terbaru di atas
+              const li = document.createElement("li");
+              li.className = "list-group-item d-flex justify-content-between align-items-center";
+              
+              const wkt = new Date(item.timestamp).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' });
+              const tgl = new Date(item.timestamp).toLocaleDateString("id-ID", { day: '2-digit', month: 'short' });
+
+              li.innerHTML = `
+                <div>
+                  <span class="fw-bold">${item.nama}</span> <small class="text-muted">(${item.id})</small>
+                </div>
+                <div class="text-end text-muted small">
+                  <div>${tgl}</div>
+                  <div>${wkt} WIB</div>
+                </div>
+              `;
+              logList.appendChild(li);
+            });
+          }
         } else {
-          alert(result.message);
+          emptyState.innerText = result.message;
         }
       } catch (err) {
-        alert("Gagal memuat log presensi!");
+        emptyState.innerText = "Gagal memuat log.";
       }
     }
 
